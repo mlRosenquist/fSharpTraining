@@ -177,7 +177,7 @@ test (fun (xs, ys) -> append' xs ys)
 
 //(* Fun fact: Every function (which terminates) can be made using fold_right, and no recursion nor pattern-matching *)
 
-// Missing
+ //Missing
 //let rec fold_left f acc xs =
 //    match xs with
 //    | Nil -> acc
@@ -267,11 +267,20 @@ test (contains (fun x -> x = 4))
 //let rec contains_all xs ys =
 //  (* exercise *)
 
-//let rec find f xs =
-//  (* exercise *)
-//test (find (fun x -> x < 5))
-//  [ Cons (10, Cons (2, Nil)), 2;
-//    Cons (4, Cons (2, Nil)), 4 ]
+
+let rec find f xs =
+    match xs with 
+    | Nil -> -1
+    | Cons (hd, tl) -> 
+        if f hd 
+        then hd 
+        else 
+        find f tl
+
+  (* exercise *)
+test (find (fun x -> x < 5))
+  [ Cons (10, Cons (2, Nil)), 2;
+    Cons (4, Cons (2, Nil)), 4 ]
 
 let indexOf e xs =
     let rec recIndexOf e xs counter = 
@@ -302,28 +311,46 @@ test (indexOf 4)
 //  pairs
 //*)
 
-//let rec zip xs ys =
-//  match xs, ys with
-//    | Nil, Nil -> Nil
-//    | Cons (x, xs), Cons (y, ys) -> Cons ((x, y), zip xs ys)
-//    | _ -> failwith "not same length"
+let rec zip xs ys =
+  match xs, ys with
+    | Nil, Nil -> Nil
+    | Cons (x, xs), Cons (y, ys) -> Cons ((x, y), zip xs ys)
+    | _ -> failwith "not same length"
 
-//let rec unzip xs =
-//  match xs with
-//    | Nil -> (Nil, Nil)
-//    | Cons ((x, y), xs) -> 
-//      let (o1, o2) = unzip xs in
-//      (Cons (x, o1), Cons (y, o2))
-//test unzip
-//  [ Cons ((10, 1), Cons ((9, 2), Nil)), (Cons (10, Cons (9, Nil)), Cons (1, Cons (2, Nil))) ]
+let rec unzip xs =
+  match xs with
+    | Nil -> (Nil, Nil)
+    | Cons ((x, y), xs) -> 
+      let (o1, o2) = unzip xs in
+      (Cons (x, o1), Cons (y, o2))
+test unzip
+  [ Cons ((10, 1), Cons ((9, 2), Nil)), (Cons (10, Cons (9, Nil)), Cons (1, Cons (2, Nil))) ]
 
-//let rec assoc key map =
-//  (* exercise *)
-//test (assoc 5)
-//  [ Cons ((5, 10), Cons ((2, 11), Nil)), 10;
-//    Cons ((4, 11), Cons ((5, 2), Nil)), 2 ]
+let rec assoc key map =
+    match map with 
+    | Nil -> -1
+    | Cons ((xkey, value), tl) ->
+    if xkey = key
+    then value 
+    else 
+    assoc key tl
+  (* exercise *)
+test (assoc 5)
+  [ Cons ((5, 10), Cons ((2, 11), Nil)), 10;
+    Cons ((4, 11), Cons ((5, 2), Nil)), 2 ]
 
-//let rec partition f xs =
+// Need to do
+//let partition f xs =
+//    let rec recPartition xs left right =
+//        match xs with
+//        | Nil -> (Cons (left, Nil), (right, Nil))
+//        | Cons (hd, tl) -> 
+//            if f hd then
+//                recPartition tl (append left (Cons (hd, Nil))) right
+//            else 
+//                recPartition tl left (append right (Cons (hd, Nil))) 
+//    recPartition xs Nil Nil
+  
 //  (* exercise *)
 //test (partition (fun x -> x > 5))
 //  [ Cons (10, Cons (2, Nil)), (Cons (10, Nil), Cons (2, Nil));
@@ -333,49 +360,113 @@ test (indexOf 4)
 //  numbers
 //*)
 
-//let rec fac n =
-//  if n = 0
-//  then 1
-//  else n * fac (n-1)
+let rec fac n =
+  if n = 0
+  then 1
+  else n * fac (n-1)
 
-//let rec skip n xs =
-//  (* exercise *)
-//test (skip 2)
-//  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (3, Nil);
-//    Cons (3, Nil), Nil ]
+let skip n xs =
+  let rec recskip xs counter = 
+    match xs with
+    | Nil -> Nil
+    | Cons (hd, tl) -> 
+    if counter = n 
+    then tl
+    else 
+    recskip tl (counter + 1)
+  recskip xs 1
 
-//let rec index n xs =
-//  (* exercise *)
-//test (index 2)
-//  [ Cons (1, Cons (2, Cons (3, Nil))), 2;
-//    Cons (3, Cons (5, Nil)), 5 ]
+test (skip 2)
+  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (3, Nil);
+    Cons (3, Nil), Nil ]
+
+let index n xs =
+    let rec recIndex xs counter =
+        match xs with 
+        | Nil -> -1
+        | Cons (hd, tl) ->
+        if counter = n 
+        then hd
+        else recIndex tl (counter + 1)
+    recIndex xs 1
+  (* exercise *)
+test (index 2)
+  [ Cons (1, Cons (2, Cons (3, Nil))), 2;
+    Cons (3, Cons (5, Nil)), 5 ]
     
-//let rec take n xs =
-//  (* exercise *)
-//test (take 2)
-//  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (1, Cons (2, Nil));
-//    Cons (3, Nil), Cons (3, Nil) ]
+let take n xs =
+   let rec recTake xs ys counter =
+        match xs with 
+        | Nil -> ys
+        | Cons (hd, tl) ->
+        if n = counter
+        then ys
+        else 
+        recTake tl (snoc ys hd) (counter + 1)
+   recTake xs Nil 0
+  (* exercise *)
+test (take 2)
+  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (1, Cons (2, Nil));
+    Cons (3, Nil), Cons (3, Nil);
+    Cons (4, Cons (5, Cons (6, Nil))), Cons (4, Cons (5, Nil));]
 
-//let rec ending n xs =
-//  (* exercise *)
-//test (ending 2)
-//  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (2, Cons (3, Nil));
-//    Cons (3, Cons (5, Nil)), Cons (3, Cons (5, Nil)) ]
+let ending n xs =
+    let rec recEnding counter saved xs2 = 
+        match xs2 with 
+            | Nil ->
+                if (counter - n) > 0
+                then skip (counter - n) saved
+                else saved
+            | Cons (hd, tl) ->
+            recEnding (counter + 1) (snoc saved hd) tl
+    recEnding 0 Nil xs 
+    
+  (* exercise *)
+test (ending 2)
+  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (2, Cons (3, Nil));
+    Cons (3, Cons (5, Nil)), Cons (3, Cons (5, Nil)) ]
 
 //(*
 //  challenges
 //*)
 
-//let conv xs ys = 
-//  (* exercise *)
-//test (fun (xs, ys) -> conv xs ys)
-//  [ (Cons (1, Cons (2, Cons (3, Nil)))
-//    ,Cons (4, Cons (5, Cons (6, Nil)))),
-//    Cons ((1, 6), Cons ((2, 5), Cons ((3, 4), Nil))) ]
+let conv xs ys1 =
+    let rec recConv xs ys2 result counter = 
+        match xs with 
+        | Nil -> result
+        | Cons (xhd, xtl) -> 
+            match ys2 with 
+            | Nil -> recConv xtl (take (counter) ys1) result 0
+            | Cons (yhd, ytl) -> 
+            if ytl = Nil then
+                if result <> Nil then             
+                    recConv xtl (take (counter) ys1) (append result (Cons((xhd, yhd), Nil))) 0
+                else 
+                    recConv xtl (take (counter) ys1) (Cons((xhd, yhd), Nil)) 0
+            else 
+            recConv xs ytl result (counter + 1)
+    recConv xs ys1 Nil 0
+
+  (* exercise *)
+test (fun (xs, ys) -> conv xs ys)
+  [ (Cons (1, Cons (2, Cons (3, Nil)))
+    ,Cons (4, Cons (5, Cons (6, Nil)))),
+    Cons ((1, 6), Cons ((2, 5), Cons ((3, 4), Nil))) ]
 
 
-//let sub_avg xs =
-//  (* exercise *)
-//test sub_avg
-//  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (-1, Cons (0, Cons (1, Nil)));
-//    Cons (6, Cons (3, Cons (-9, Nil))), Cons (6, Cons (3, Cons (-9, Nil))) ]
+let sub_avg xs1a =
+    let rec recSub_avg xs1b result avg= 
+        match xs1b with 
+        | Nil -> result
+        | Cons (hd, tl) ->
+            if result = Nil then
+                recSub_avg tl (Cons (hd - avg, Nil)) avg
+            else
+                recSub_avg tl (append result (Cons (hd - avg, Nil))) avg
+    recSub_avg xs1a Nil ((sum xs1a) / (length xs1a))
+            
+
+  (* exercise *)
+test sub_avg
+  [ Cons (1, Cons (2, Cons (3, Nil))), Cons (-1, Cons (0, Cons (1, Nil)));
+    Cons (6, Cons (3, Cons (-9, Nil))), Cons (6, Cons (3, Cons (-9, Nil))) ]
