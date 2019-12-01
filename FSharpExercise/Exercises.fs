@@ -1,5 +1,7 @@
 ﻿module Exercises
 
+open Microsoft.FSharp.Core
+
 (* Helping function for running tests (just ignore it) *)
 let test f tests =
   let res = List.filter (fun (e, exp) -> f e <> exp) tests in
@@ -128,7 +130,8 @@ let rec snoc xs x =
 test (fun (xs, x) -> snoc xs x)
   [ (Nil, 1), Cons (1, Nil);
     (Cons (1, Nil), 2), Cons (1, Cons (2, Nil));
-    (Cons (1, Cons (2, Nil)), 3), Cons (1, Cons (2, Cons (3, Nil))) ]
+    (Cons (1, Cons (2, Nil)), 3), Cons (1, Cons (2, Cons (3, Nil)));
+    (Nil, 3), Cons (3, Nil)]
 
 let rec last xs =
     match xs with 
@@ -178,14 +181,19 @@ test (fun (xs, ys) -> append' xs ys)
 //(* Fun fact: Every function (which terminates) can be made using fold_right, and no recursion nor pattern-matching *)
 
  //Missing
-//let rec fold_left f acc xs =
-//    match xs with
-//    | Nil -> acc
-//    | Cons (hd, tl) -> f hd (fold_left f acc tl)
-//  (* exercise *)
-//let rev'' xs = fold_left (fun x b -> Cons (x, b)) Nil xs
-//test (fun (xs) -> rev'' xs)
-//  [ Cons (1, Cons (2, Nil)), Cons (2, Cons (1, Nil)) ]
+let rec fold_left f acc xs =
+    match xs with
+    | Nil -> acc
+    | Cons (hd, tl) -> 
+    if tl = Nil
+    then 
+        Cons(hd, acc)
+    else 
+        fold_left f (snoc acc hd) tl
+  (* exercise *)
+let rev'' xs = fold_left (fun x b -> Cons (x, b)) Nil xs
+test (fun (xs) -> rev'' xs)
+  [ Cons (1, Cons (2, Nil)), Cons (2, Cons (1, Nil)) ]
 
 
 let rec map f xs =
@@ -340,25 +348,22 @@ test (assoc 5)
     Cons ((4, 11), Cons ((5, 2), Nil)), 2 ]
 
 // Need to do
-//let partition f xs =
-//    let rec recPartition xs left right =
-//        match xs with
-//        | Nil -> (Cons (left, Nil), (right, Nil))
-//        | Cons (hd, tl) -> 
-//            if f hd then
-//                recPartition tl (append left (Cons (hd, Nil))) right
-//            else 
-//                recPartition tl left (append right (Cons (hd, Nil))) 
-//    recPartition xs Nil Nil
+let partition f xs1 =
+    let rec recPartition xs2 left right =
+        match xs2 with
+        | Nil -> (left, right)
+        | Cons (hd, tl) -> 
+            if f hd then
+                recPartition tl (append left (Cons (hd, Nil))) right
+            else 
+                recPartition tl left (append right (Cons (hd, Nil)))
+    recPartition xs1 Nil Nil
   
-//  (* exercise *)
-//test (partition (fun x -> x > 5))
-//  [ Cons (10, Cons (2, Nil)), (Cons (10, Nil), Cons (2, Nil));
-//    Cons (4, Cons (2, Nil)), (Nil, Cons (4, Cons (2, Nil))) ]
+  (* exercise *)
+test (partition (fun x -> x > 5))
+  [ Cons (10, Cons (2, Nil)), (Cons (10, Nil), Cons (2, Nil));
+    Cons (4, Cons (2, Nil)), (Nil, Cons (4, Cons (2, Nil))) ]
 
-//(*
-//  numbers
-//*)
 
 let rec fac n =
   if n = 0
